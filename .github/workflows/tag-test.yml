@@ -42,17 +42,16 @@ jobs:
 
       - name: Move v{major} and v{major}.{minor} tags
         uses: actions/github-script@v5
+        env: 
+          TAGNAME: ${{ github.ref_name }}
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const semver = require("semver");
 
             // parse our version
-            let parsed = semver.parse(github.ref_name);
+            let parsed = semver.parse(process.env.TAGNAME);
             
-            core.notice("REF NAME");
-            core.notice(github.ref_name);
-
             const tagsToMove = [
               // already covered by semantic-release, it is what triggers this WF
               // `v${parsed.major}.${parsed.minor}.${parsed.patch}`,
