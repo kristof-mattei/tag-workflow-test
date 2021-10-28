@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          npm ci
+          npm install semver
 
       - name: Move v{major} and v{major}.{minor} tags
         uses: actions/github-script@v5
