@@ -45,7 +45,7 @@ jobs:
         env: 
           TAGNAME: ${{ github.ref_name }}
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{secrets.FOO}}
           script: |
             const semver = require("semver");
 
