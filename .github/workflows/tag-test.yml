@@ -49,7 +49,7 @@ jobs:
           github-token: ${{secrets.FOO}}
           script: |
             const semver = require("semver");
-            const serializeError = require("serialize-error");
+            const { serializeError } = require("serialize-error");
 
             // parse our version
             let parsed = semver.parse(process.env.TAGNAME);
