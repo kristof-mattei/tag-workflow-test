@@ -39,6 +39,7 @@ jobs:
         shell: bash
         run: |
           npm install semver
+          npm install serialize-error
 
       - name: Move v{major} and v{major}.{minor} tags
         uses: actions/github-script@v5
@@ -48,6 +49,7 @@ jobs:
           github-token: ${{secrets.FOO}}
           script: |
             const semver = require("semver");
+            const serializeError = require("serialize-error");
 
             // parse our version
             let parsed = semver.parse(process.env.TAGNAME);
@@ -77,7 +79,7 @@ jobs:
                 core.info(`Deleted ${tag}.`);
               } catch (e) {
                 core.info(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
-                core.debug(e);
+                core.debug(serializeError(e));
               }
 
               await github.rest.git.createRef({
