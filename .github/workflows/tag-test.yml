@@ -48,7 +48,10 @@ jobs:
             const semver = require("semver");
 
             // parse our version
-            let parsed = semver.parse(github.ref_name)
+            let parsed = semver.parse(github.ref_name);
+            
+            core.setOutput("REF NAME");
+            core.setOutput(github.ref_name);
 
             const tagsToMove = [
               // already covered by semantic-release, it is what triggers this WF
