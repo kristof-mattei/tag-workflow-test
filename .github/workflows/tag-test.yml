@@ -53,43 +53,51 @@ jobs:
 
             // parse our version
             let parsed = semver.parse(process.env.TAGNAME);
-            
+
             const tagsToMove = [
-              // already covered by semantic-release, it is what triggers this WF
-              // `v${parsed.major}.${parsed.minor}.${parsed.patch}`,
-              `v${parsed.major}.${parsed.minor}`,
-              // only do major if we're off v0, as v0 is the semver exception
-              ...(0 !== parsed.major ? [`v${parsed.major}`] : [])
+                // already covered by semantic-release, it is what triggers this WF
+                // `v${parsed.major}.${parsed.minor}.${parsed.patch}`,
+                `v${parsed.major}.${parsed.minor}`,
+                // only do major if we're off v0, as v0 is the semver exception
+                ...(0 !== parsed.major ? [`v${parsed.major}`] : [])
             ];
 
             core.info(`Trying to move the following tags: ${tagsToMove.join(", ")} by deleting and re-creating.`);
 
             async function move(tag) {
-              const ref = {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `refs/tags/${tag}`,
-              };
+                const ref = {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${tag}`,
+                };
 
-              try {
-                await github.rest.git.deleteRef({
-                  ...ref
-                });
+                try {
+                    await github.rest.git.deleteRef({
+                        ref
+                    });
 
-                core.info(`Deleted ${tag}.`);
-              } catch (e) {
-                core.info(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
-                core.debug(serializeError(e));
-              }
+                    core.info(`Deleted ${tag}.`);
+                } catch (e) {
+                    core.info(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
+                    core.debug(serializeError(e));
+                }
 
-              await github.rest.git.createRef({
-                ...ref,
-                sha: context.sha
-              });
+                try {
+                    await github.rest.git.createRef({
+                        ...ref,
+                        // if we add a new tag we need to prefix it with refs/
+                        // but not for delete (?...)
+                        ref: `refs/${ref.ref}`, 
+                        sha: context.sha
+                    });
 
-              core.info(`Created ${tag} on ${context.sha}.`);
+                    core.info(`Created ${tag} on ${context.sha}.`);
+                } catch (e) {
+                    core.info(`Failed to create tag ${tag}.`);
+                    core.debug(serializeError(e));
+                }
             }
 
             await Promise.all(tagsToMove.map(move));
 
-            core.info("All done!")
+            core.info("All done!");
