@@ -60,7 +60,7 @@ jobs:
               ...(0 !== parsed.major ? [`v${parsed.major}`] : [])
             ];
 
-            core.notice(`Trying to move the following tags: ${tagsToMove.join(", ")} by deleting and re-creating.`);
+            core.info(`Trying to move the following tags: ${tagsToMove.join(", ")} by deleting and re-creating.`);
 
             async function move(tag) {
               const ref = {
@@ -74,9 +74,9 @@ jobs:
                   ...ref
                 });
 
-                core.notice(`Deleted ${tag}.`);
+                core.info(`Deleted ${tag}.`);
               } catch (e) {
-                core.setOutput(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
+                core.info(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
               }
 
               await github.rest.git.createRef({
@@ -84,9 +84,9 @@ jobs:
                 sha: context.sha
               });
 
-              core.notice(`Created ${tag} on ${context.sha}.`);
+              core.info(`Created ${tag} on ${context.sha}.`);
             }
 
             await Promise.all(tagsToMove.map(move));
 
-            core.notice("All done!")
+            core.info("All done!")
