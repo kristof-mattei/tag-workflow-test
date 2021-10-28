@@ -16,3 +16,73 @@ jobs:
         env:
           GITHUB: "${{ toJSON(github) }}"
         run: echo "${GITHUB}"
+
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "lts/16"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          CACHE_NAME: npm-cache-dependencies
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ env.CACHE_NAME }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.CACHE_NAME }}-
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          npm ci
+
+      - name: Move v{major} and v{major}.{minor} tags
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            // parse our version
+            let parsed = semver.parse(github.ref_name)
+
+            const tagsToMove = [
+              // already covered by semantic-release, it is what triggers this WF
+              // `v${parsed.major}.${parsed.minor}.${parsed.patch}`,
+              `v${parsed.major}.${parsed.minor}`,
+              // only do major if we're off v0, as v0 is the semver exception
+              ...(0 !== parsed.major ? [`v${parsed.major}`] : [])
+            ];
+
+            core.setOutput(`Trying to move the following tags: ${tagsToMove.join(", ")} by deleting and re-creating.`);
+
+            async function move(tag) {
+              const ref = {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${tag}`,
+              };
+
+              try {
+                await github.git.deleteRef({
+                  ...ref
+                });
+
+                core.setOutput(`Deleted ${tag}.`);
+              } catch (e) {
+                core.setOutput(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
+              }
+
+              await github.git.createRef({
+                ...ref,
+                sha: context.sha
+              });
+
+              core.setOutput(`Created ${tag} on ${context.sha}.`);
+            }
+
+            await Promise.all(tagsToMove.map(move));
+
+            core.setOutput("All done!")
