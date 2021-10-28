@@ -45,6 +45,8 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
+            const semver = require("semver");
+
             // parse our version
             let parsed = semver.parse(github.ref_name)
 
