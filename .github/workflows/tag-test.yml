@@ -70,7 +70,7 @@ jobs:
               };
 
               try {
-                await github.git.deleteRef({
+                await github.rest.git.deleteRef({
                   ...ref
                 });
 
@@ -79,7 +79,7 @@ jobs:
                 core.setOutput(`The tag ${tag} doesn't exist yet, that's OK, it happens on new versions.`);
               }
 
-              await github.git.createRef({
+              await github.rest.git.createRef({
                 ...ref,
                 sha: context.sha
               });
