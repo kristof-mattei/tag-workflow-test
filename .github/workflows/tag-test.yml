@@ -36,28 +36,8 @@ jobs:
             ${{ runner.os }}-${{ env.CACHE_NAME }}-
 
       - name: Install dependencies
-        shell: bash
-        run: |
-          npm install semver
-
-      - name: Split the incoming tag into major, minor and patch
-        uses: actions/github-script@v5
-        env:
-          TAGNAME: ${{ github.ref_name }}
-        with:
-          github-token: ${{secrets.FOO}}
-          script: |
-            const semver = require("semver");
-
-            // parse our version
-            let parsed = semver.parse(process.env.TAGNAME);
-
-            core.exportVariable("MAJOR", parsed.major);
-            core.exportVariable("MINOR", parsed.minor);
-            core.exportVariable("PATCH", parsed.patch);
-
-      - name: Install dependencies
-        if: ${{ env.RUNNER_DEBUG == 'true' }}
+        # see https://github.com/actions/toolkit/blob/e2eeb0a784f4067a75f0c6cd2cc9703f3cbc7744/packages/core/src/core.ts#L227
+        if: ${{ env.RUNNER_DEBUG == '1' }}
         shell: bash
         run: |
           npm install serialize-error
@@ -68,7 +48,7 @@ jobs:
           # because the actual github context ref_name isn't there
           TAGNAME: ${{ github.ref_name }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.FOO }}
           script: |
             const { serializeError } = core.isDebug() ? require("serialize-error") : { serializeError: () => {} };
 
