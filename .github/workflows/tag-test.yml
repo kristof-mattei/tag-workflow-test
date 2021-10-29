@@ -41,28 +41,40 @@ jobs:
           npm install semver
           npm install serialize-error
 
-      - name: Move v${{ env.major }} and v${{ env.major }}.${{ env.minor }} tags
+      - name: Split the incoming tag into major, minor and patch
         uses: actions/github-script@v5
-        env: 
+        env:
           TAGNAME: ${{ github.ref_name }}
         with:
           github-token: ${{secrets.FOO}}
           script: |
             const semver = require("semver");
-            const { serializeError } = require("serialize-error");
 
             // parse our version
             let parsed = semver.parse(process.env.TAGNAME);
-            
-            core.exportVariable("major", parsed.major);
-            core.exportVariable("minor", parsed.minor);
+
+            core.exportVariable("MAJOR", parsed.major);
+            core.exportVariable("MINOR", parsed.minor);
+            core.exportVariable("PATCH", parsed.patch);
+
+      - name: Move v${{ env.MAJOR }} and v${{ env.MAJOR }}.${{ env.MINOR }} tags
+        uses: actions/github-script@v5
+        env:
+          # because the actual github context ref_name isn't there
+          TAGNAME: ${{ github.ref_name }}
+        with:
+          github-token: ${{secrets.FOO}}
+          script: |
+            const { serializeError } = require("serialize-error");
+
+            core.info(JSON.stringify(github));
 
             const tagsToMove = [
                 // already covered by semantic-release, it is what triggers this WF
-                // `v${parsed.major}.${parsed.minor}.${parsed.patch}`,
-                `v${parsed.major}.${parsed.minor}`,
+                // `v${process.env.major}.${process.env.minor}.${process.env.patch}`,
+                `v${process.env.major}.${process.env.minor}`,
                 // only do major if we're off v0, as v0 is the semver exception
-                ...(0 !== parsed.major ? [`v${parsed.major}`] : [])
+                ...(0 !== process.env.major ? [`v${process.env.major}`] : [])
             ];
 
             core.info(`Trying to move the following tags: ${tagsToMove.join(", ")} by deleting and re-creating.`);
@@ -103,7 +115,3 @@ jobs:
             await Promise.all(tagsToMove.map(move));
 
             core.info("All done!");
-      - name: Say hello to v${{ env.major }} and v${{ env.major }}.${{ env.minor }} 
-        shell: bash
-        run: |
-          echo HELLLOO
