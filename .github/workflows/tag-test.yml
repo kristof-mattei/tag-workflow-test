@@ -114,7 +114,7 @@ jobs:
                     core.info(`Created ${tag} on ${context.sha}.`);
 
                 } catch (e) {
-                    core.info(`Failed to create tag ${tag}.`);
+                    core.setFailed(`Failed to create tag ${tag}.`);
                     core.debug(serializeError(e));
                 }
             }
