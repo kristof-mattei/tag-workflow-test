@@ -71,10 +71,10 @@ jobs:
 
             const tagsToMove = [
                 // already covered by semantic-release, it is what triggers this WF
-                // `v${process.env.major}.${process.env.minor}.${process.env.patch}`,
-                `v${process.env.major}.${process.env.minor}`,
+                // `v${process.env.MAJOR}.${process.env.MINOR}.${process.env.PATCH}`,
+                `v${process.env.MAJOR}.${process.env.MINOR}`,
                 // only do major if we're off v0, as v0 is the semver exception
-                ...(0 !== process.env.major ? [`v${process.env.major}`] : [])
+                ...(0 !== process.env.MAJOR ? [`v${process.env.major}`] : [])
             ];
 
             core.info(`Trying to move the following tags: ${tagsToMove.join(", ")} by deleting and re-creating.`);
