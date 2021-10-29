@@ -37,14 +37,16 @@ jobs:
 
       - name: Dumb env
         shell: bash
-        env: 
-          COMPLETE: ${{ toJSON(env) }}
         run: |
-          printenv
+          if [ ${RUNNER_DEBUG} -eq 1 ]
+          then
+            npm install serialize-error
+            echo "Installed serialize-error"
+          fi
 
       - name: Install dependencies
         # see https://github.com/actions/toolkit/blob/e2eeb0a784f4067a75f0c6cd2cc9703f3cbc7744/packages/core/src/core.ts#L227
-        if: ${{ env.ACTIONS_RUNNER_DEBUG == 'true' }}
+        if: ${{ env.RUNNER_DEBUG == '1' }}
         shell: bash
         run: |
           npm install serialize-error
