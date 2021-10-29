@@ -68,12 +68,13 @@ jobs:
                 const ref = {
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    ref: `tags/${tag}`,
+                    ref: `tags/${tag}`
+
                 };
 
                 try {
                     await github.rest.git.deleteRef({
-                        ref
+                        ...ref,
                     });
 
                     core.info(`Deleted ${tag}.`);
@@ -85,9 +86,7 @@ jobs:
                 try {
                     await github.rest.git.createRef({
                         ...ref,
-                        // if we add a new tag we need to prefix it with refs/
-                        // but not for delete (?...)
-                        ref: `refs/${ref.ref}`, 
+                        ref: `refs/${ref.ref}`,
                         sha: context.sha
                     });
 
@@ -101,3 +100,5 @@ jobs:
             await Promise.all(tagsToMove.map(move));
 
             core.info("All done!");
+
+          
