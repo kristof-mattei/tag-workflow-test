@@ -41,7 +41,7 @@ jobs:
           npm install semver
           npm install serialize-error
 
-      - name: Move v{major} and v{major}.{minor} tags
+      - name: Move v${{ env.major }} and v${{ env.major }}.${{ env.minor }} tags
         uses: actions/github-script@v5
         env: 
           TAGNAME: ${{ github.ref_name }}
@@ -53,6 +53,9 @@ jobs:
 
             // parse our version
             let parsed = semver.parse(process.env.TAGNAME);
+            
+            core.exportVariable("major", parsed.major);
+            core.exportVariable("minor", parsed.minor);
 
             const tagsToMove = [
                 // already covered by semantic-release, it is what triggers this WF
@@ -100,5 +103,7 @@ jobs:
             await Promise.all(tagsToMove.map(move));
 
             core.info("All done!");
-
-          
+      - name: Say hello to v${{ env.major }} and v${{ env.major }}.${{ env.minor }} 
+        shell: bash
+        run: |
+          echo HELLLOO
