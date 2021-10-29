@@ -43,19 +43,19 @@ jobs:
       - name: Split the incoming tag into major, minor and patch
         uses: actions/github-script@v5
         env:
+          # because in the JS github variable ref_name isn't there
           TAGNAME: ${{ github.ref_name }}
         with:
-          github-token: ${{secrets.FOO}}
+          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const semver = require("semver");
-            
+
             // parse our version
             let parsed = semver.parse(process.env.TAGNAME);
-            
+
             core.exportVariable("MAJOR", parsed.major);
             core.exportVariable("MINOR", parsed.minor);
             core.exportVariable("PATCH", parsed.patch);
-
 
       - name: Install debug dependencies
         shell: bash
@@ -64,16 +64,12 @@ jobs:
           if [ ${RUNNER_DEBUG} -eq 1 ]
           then
             npm install serialize-error
-            echo "Installed serialize-error"
           fi
-          
+
       - name: Move v${{ env.MAJOR }} and v${{ env.MAJOR }}.${{ env.MINOR }} tags
         uses: actions/github-script@v5
-        env:
-          # because the actual github context ref_name isn't there
-          TAGNAME: ${{ github.ref_name }}
         with:
-          github-token: ${{ secrets.FOO }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { serializeError } = core.isDebug() ? require("serialize-error") : { serializeError: () => {} };
 
@@ -116,6 +112,7 @@ jobs:
                     });
 
                     core.info(`Created ${tag} on ${context.sha}.`);
+
                 } catch (e) {
                     core.info(`Failed to create tag ${tag}.`);
                     core.debug(serializeError(e));
