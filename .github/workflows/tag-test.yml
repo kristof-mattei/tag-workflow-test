@@ -40,7 +40,7 @@ jobs:
         env: 
           COMPLETE: ${{ toJSON(env) }}
         run: |
-          echo ${COMPLETE}
+          printenv
 
       - name: Install dependencies
         # see https://github.com/actions/toolkit/blob/e2eeb0a784f4067a75f0c6cd2cc9703f3cbc7744/packages/core/src/core.ts#L227
