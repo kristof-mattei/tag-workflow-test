@@ -39,7 +39,6 @@ jobs:
         shell: bash
         run: |
           npm install semver
-          npm install serialize-error
 
       - name: Split the incoming tag into major, minor and patch
         uses: actions/github-script@v5
@@ -57,17 +56,21 @@ jobs:
             core.exportVariable("MINOR", parsed.minor);
             core.exportVariable("PATCH", parsed.patch);
 
+      - name: Install dependencies
+        if: ${{ env.ACTIONS_RUNNER_DEBUG == 'true' }}
+        shell: bash
+        run: |
+          npm install serialize-error
+
       - name: Move v${{ env.MAJOR }} and v${{ env.MAJOR }}.${{ env.MINOR }} tags
         uses: actions/github-script@v5
         env:
           # because the actual github context ref_name isn't there
           TAGNAME: ${{ github.ref_name }}
         with:
-          github-token: ${{secrets.FOO}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { serializeError } = require("serialize-error");
-
-            core.info(JSON.stringify(github));
+            const { serializeError } = core.isDebug() ? require("serialize-error") : { serializeError: () => {} };
 
             const tagsToMove = [
                 // already covered by semantic-release, it is what triggers this WF
@@ -84,7 +87,6 @@ jobs:
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     ref: `tags/${tag}`
-
                 };
 
                 try {
@@ -101,6 +103,9 @@ jobs:
                 try {
                     await github.rest.git.createRef({
                         ...ref,
+                        // to delete a tag with deleteRef the format of the ref is tags/{tag}
+                        // to create a tag with createRef the format of the ref is /refs/tags/{tag}
+                        // # confused
                         ref: `refs/${ref.ref}`,
                         sha: context.sha
                     });
