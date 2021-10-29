@@ -57,7 +57,7 @@ jobs:
             core.exportVariable("PATCH", parsed.patch);
 
       - name: Install dependencies
-        if: ${{ env.ACTIONS_RUNNER_DEBUG == 'true' }}
+        if: ${{ env.RUNNER_DEBUG == 'true' }}
         shell: bash
         run: |
           npm install serialize-error
