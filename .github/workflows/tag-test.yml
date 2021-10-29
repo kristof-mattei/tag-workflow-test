@@ -35,22 +35,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.CACHE_NAME }}-
 
-      - name: Dumb env
+      - name: Install dependencies
         shell: bash
         run: |
+          npm install semver
+
+      - name: Split the incoming tag into major, minor and patch
+        uses: actions/github-script@v5
+        env:
+          TAGNAME: ${{ github.ref_name }}
+        with:
+          github-token: ${{secrets.FOO}}
+          script: |
+            const semver = require("semver");
+            
+            // parse our version
+            let parsed = semver.parse(process.env.TAGNAME);
+            
+            core.exportVariable("MAJOR", parsed.major);
+            core.exportVariable("MINOR", parsed.minor);
+            core.exportVariable("PATCH", parsed.patch);
+
+
+      - name: Install debug dependencies
+        shell: bash
+        run: |
+          # see https://github.com/actions/toolkit/blob/e2eeb0a784f4067a75f0c6cd2cc9703f3cbc7744/packages/core/src/core.ts#L227
           if [ ${RUNNER_DEBUG} -eq 1 ]
           then
             npm install serialize-error
             echo "Installed serialize-error"
           fi
-
-      - name: Install dependencies
-        # see https://github.com/actions/toolkit/blob/e2eeb0a784f4067a75f0c6cd2cc9703f3cbc7744/packages/core/src/core.ts#L227
-        if: ${{ env.RUNNER_DEBUG == '1' }}
-        shell: bash
-        run: |
-          npm install serialize-error
-
+          
       - name: Move v${{ env.MAJOR }} and v${{ env.MAJOR }}.${{ env.MINOR }} tags
         uses: actions/github-script@v5
         env:
