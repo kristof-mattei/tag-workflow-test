@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies
         # see https://github.com/actions/toolkit/blob/e2eeb0a784f4067a75f0c6cd2cc9703f3cbc7744/packages/core/src/core.ts#L227
-        if: ${{ env.RUNNER_DEBUG == '1' }}
+        if: ${{ env.ACTIONS_RUNNER_DEBUG == 'true' }}
         shell: bash
         run: |
           npm install serialize-error
